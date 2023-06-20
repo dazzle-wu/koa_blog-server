@@ -23,4 +23,6 @@ router.get('/detail/:id', ArticleController.getArticleDetail)
 
 router.post('/add', upload.single('cover_img'), ArticleController.addArticle)
 
+router.post('/update', upload.single('cover_img'), ArticleController.updateArticle)
+
 module.exports = router
