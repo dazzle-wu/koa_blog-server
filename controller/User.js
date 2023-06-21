@@ -9,7 +9,7 @@ class UserController extends BaseController {
   // 用户列表
   static async getUserList(ctx) {
     const res = await UserModel.findAll({
-      attributes: ['uid', 'email', 'username', 'role', 'state']
+      attributes: ['id', 'email', 'username', 'is_admin', 'is_delete']
     })
     ctx.body = super.renderJsonSuccess(res)
   }
@@ -17,10 +17,8 @@ class UserController extends BaseController {
   // 用户详情
   static async getUserDetail(ctx) {
     const res = await UserModel.findOne({
-      attributes: ['uid', 'email', 'username'],
-      where: {
-        uid: ctx.request.body.id
-      }
+      attributes: ['id', 'email', 'username'],
+      where: { id: ctx.request.body.id }
     })
     ctx.body = super.renderJsonSuccess(res)
   }
@@ -29,9 +27,7 @@ class UserController extends BaseController {
   static async register(ctx) {
     const { email, password } = ctx.request.body
     const user = await UserModel.findOne({
-      where: {
-        email: email
-      }
+      where: { email: email }
     })
     if (!user) {
       const res = await UserModel.create({
@@ -48,9 +44,9 @@ class UserController extends BaseController {
   static async login(ctx) {
     const { username, password } = ctx.request.body
     const user = await UserModel.findOne({
-      attributes: ['uid', 'email', 'username', 'password'],
+      attributes: ['id', 'email', 'username', 'password'],
       where: {
-        [Op.and]: [{ [Op.or]: [{ email: username }, { username: username }] }, { state: 0 }]
+        [Op.and]: [{ [Op.or]: [{ email: username }, { username: username }] }, { is_delete: 0 }]
       }
     })
     if (user) {
@@ -74,9 +70,7 @@ class UserController extends BaseController {
   static async changePassword(ctx) {
     const { oldPassword, newPassword } = ctx.request.body
     const user = await UserModel.findOne({
-      where: {
-        uid: ctx.state.user.id
-      }
+      where: { id: ctx.state.user.id }
     })
     const compareResult = bcrypt.compareSync(oldPassword, user.password)
     if (compareResult) {
@@ -84,7 +78,7 @@ class UserController extends BaseController {
         const res = await UserModel.update(
           { password: bcrypt.hashSync(newPassword, 10) },
           {
-            where: { uid: ctx.state.user.id }
+            where: { id: ctx.state.user.id }
           }
         )
         ctx.body = super.renderJsonSuccess()
@@ -106,7 +100,7 @@ class UserController extends BaseController {
       const res = await UserModel.update(
         { username: username },
         {
-          where: { uid: ctx.state.user.id }
+          where: { id: ctx.state.user.id }
         }
       )
       ctx.body = super.renderJsonSuccess()

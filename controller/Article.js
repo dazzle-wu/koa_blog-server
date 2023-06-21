@@ -4,26 +4,42 @@ const BaseController = require('./BaseController')
 const ArticleModel = require('../model/Article')
 const CategoryModel = require('../model/Category')
 const UserModel = require('../model/User')
+const CommentModel = require('../model/Comment')
+const LikeModel = require('../model/Like')
 
-ArticleModel.belongsTo(CategoryModel, { as: 'c', foreignKey: 'cate_id', targetKey: 'cid' })
-ArticleModel.belongsTo(UserModel, { as: 'u', foreignKey: 'author_id', targetKey: 'uid' })
+ArticleModel.belongsTo(CategoryModel, { as: 'c', foreignKey: 'category_id', targetKey: 'id' })
+ArticleModel.belongsTo(UserModel, { as: 'u', foreignKey: 'user_id', targetKey: 'id' })
+ArticleModel.hasMany(CommentModel)
+ArticleModel.hasMany(LikeModel)
 
 class ArticleController extends BaseController {
   // 文章列表
   static async getArticleList(ctx) {
     const res = await ArticleModel.findAndCountAll({
       attributes: [
-        'aid',
+        'id',
         'title',
-        'state',
         'cover_img',
-        'pub_date',
+        'is_publish',
+        'created_time',
+        'updated_time',
         [Sequelize.col('c.name'), 'category'],
-        [Sequelize.col('u.username'), 'author']
+        [Sequelize.col('u.username'), 'user'],
+        [
+          Sequelize.literal(
+            '(SELECT COUNT(*) FROM comment WHERE comment.article_id = article.id AND comment.is_delete = 0)'
+          ),
+          'comments'
+        ],
+        [
+          Sequelize.literal(
+            '(SELECT COUNT(*) FROM `like` WHERE `like`.article_id = article.id AND `like`.is_delete = 0)'
+          ),
+          'likes'
+        ]
       ],
-      where: {
-        is_delete: 0
-      },
+      where: { is_delete: 0 },
+      order: [['created_time', 'DESC']],
       include: [
         { model: CategoryModel, as: 'c', attributes: [] },
         { model: UserModel, as: 'u', attributes: [] }
@@ -37,18 +53,29 @@ class ArticleController extends BaseController {
   static async getArticleDetail(ctx) {
     const res = await ArticleModel.findOne({
       attributes: [
-        'aid',
+        'id',
         'title',
-        'state',
+        'content',
         'cover_img',
-        'pub_date',
+        'is_publish',
+        'created_time',
+        'updated_time',
         [Sequelize.col('c.name'), 'category'],
-        [Sequelize.col('u.username'), 'author']
+        [Sequelize.col('u.username'), 'user'],
+        [
+          Sequelize.literal(
+            '(SELECT COUNT(*) FROM comment WHERE comment.article_id = article.id AND comment.is_delete = 0)'
+          ),
+          'comments'
+        ],
+        [
+          Sequelize.literal(
+            '(SELECT COUNT(*) FROM `like` WHERE `like`.article_id = article.id AND `like`.is_delete = 0)'
+          ),
+          'likes'
+        ]
       ],
-      where: {
-        is_delete: 0,
-        aid: ctx.params.id
-      },
+      where: { id: ctx.params.id },
       include: [
         { model: CategoryModel, as: 'c', attributes: [] },
         { model: UserModel, as: 'u', attributes: [] }
@@ -63,8 +90,7 @@ class ArticleController extends BaseController {
     const res = await ArticleModel.create({
       ...ctx.request.body,
       cover_img: path.join('/public', ctx.file.filename),
-      pub_date: new Date(),
-      author_id: ctx.state.user.id
+      user_id: ctx.state.user.id
     })
     ctx.body = super.renderJsonSuccess(res)
   }
@@ -74,14 +100,12 @@ class ArticleController extends BaseController {
     let articleInfo = ctx.request.body
     if (ctx.file) {
       articleInfo = {
-        ...ctx.request.body,
+        ...articleInfo,
         cover_img: path.join('/public', ctx.file.filename)
       }
     }
     const res = await ArticleModel.update(articleInfo, {
-      where: {
-        aid: articleInfo.aid
-      }
+      where: { id: articleInfo.id }
     })
     ctx.body = super.renderJsonSuccess()
   }
@@ -91,9 +115,7 @@ class ArticleController extends BaseController {
     const res = await ArticleModel.update(
       { is_delete: 1 },
       {
-        where: {
-          aid: ctx.request.body.id
-        }
+        where: { id: ctx.request.body.id }
       }
     )
     ctx.body = super.renderJsonSuccess()

@@ -6,10 +6,8 @@ class CategoryController extends BaseController {
   // 分类列表
   static async getCategoryList(ctx) {
     const res = await CategoryModel.findAll({
-      attributes: ['cid', 'name'],
-      where: {
-        is_delete: 0
-      }
+      attributes: ['id', 'name'],
+      where: { is_delete: 0 }
     })
     ctx.body = super.renderJsonSuccess(res)
   }
@@ -17,9 +15,7 @@ class CategoryController extends BaseController {
   // 增加分类
   static async addCategory(ctx) {
     const cate = await CategoryModel.findOne({
-      where: {
-        name: ctx.request.body.name
-      }
+      where: { name: ctx.request.body.name }
     })
     if (!cate) {
       const res = await CategoryModel.create({
@@ -59,7 +55,7 @@ class CategoryController extends BaseController {
     const res = await CategoryModel.update(
       { is_delete: 1 },
       {
-        where: { cid: ctx.request.body.id }
+        where: { id: ctx.request.body.id }
       }
     )
     ctx.body = super.renderJsonSuccess()

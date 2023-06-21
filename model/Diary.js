@@ -2,7 +2,7 @@ const { DataTypes } = require('sequelize')
 const sequelize = require('../database/db')
 
 const Diary = sequelize.define('diary', {
-  did: {
+  id: {
     type: DataTypes.INTEGER,
     allowNull: false,
     primaryKey: true,
@@ -10,10 +10,6 @@ const Diary = sequelize.define('diary', {
   },
   content: {
     type: DataTypes.TEXT,
-    allowNull: false
-  },
-  pub_date: {
-    type: DataTypes.DATE,
     allowNull: false
   },
   user_id: {

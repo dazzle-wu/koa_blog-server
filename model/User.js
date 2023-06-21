@@ -2,7 +2,7 @@ const { DataTypes } = require('sequelize')
 const sequelize = require('../database/db')
 
 const User = sequelize.define('user', {
-  uid: {
+  id: {
     type: DataTypes.INTEGER,
     allowNull: false,
     primaryKey: true,
@@ -22,12 +22,12 @@ const User = sequelize.define('user', {
     type: DataTypes.STRING,
     allowNull: false,
   },
-  role: {
-    type: DataTypes.STRING,
+  is_admin: {
+    type: DataTypes.TINYINT,
     allowNull: false,
-    defaultValue: 'normal'
+    defaultValue: 0
   },
-  state: {
+  is_delete: {
     type: DataTypes.TINYINT,
     allowNull: false,
     defaultValue: 0

@@ -4,7 +4,7 @@ const DiaryController = require('../../controller/Diary')
 // 模块路由前缀
 router.prefix('/diary')
 
-router.get('/list', DiaryController.getDiaryList)
+router.post('/list', DiaryController.getDiaryList)
 
 router.post('/add', DiaryController.addDiary)
 

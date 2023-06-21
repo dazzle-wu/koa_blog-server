@@ -18,8 +18,15 @@ const sequelize = new Sequelize(config.database, config.username, config.passwor
     // 连接字符
     // schemaDelimiter: '-',
     // 是否自动添加时间戳
-    timestamps: false,
+    timestamps: true,
+    createdAt: 'created_time',
+    updatedAt: 'updated_time',
     freezeTableName: true
+  },
+  timezone: '+08:00',
+  dialectOptions: {
+    dateStrings: true,
+    typeCast: true
   }
 })
 

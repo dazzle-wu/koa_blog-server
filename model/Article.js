@@ -2,7 +2,7 @@ const { DataTypes } = require('sequelize')
 const sequelize = require('../database/db')
 
 const Article = sequelize.define('article', {
-  aid: {
+  id: {
     type: DataTypes.INTEGER,
     allowNull: false,
     primaryKey: true,
@@ -20,26 +20,23 @@ const Article = sequelize.define('article', {
     type: DataTypes.STRING,
     allowNull: false
   },
-  pub_date: {
-    type: DataTypes.DATE,
+  category_id: {
+    type: DataTypes.INTEGER,
     allowNull: false
   },
-  state: {
-    type: DataTypes.STRING,
+  user_id: {
+    type: DataTypes.INTEGER,
     allowNull: false
+  },
+  is_publish: {
+    type: DataTypes.TINYINT,
+    allowNull: false,
+    defaultValue: 0
   },
   is_delete: {
     type: DataTypes.TINYINT,
     allowNull: false,
     defaultValue: 0
-  },
-  cate_id: {
-    type: DataTypes.INTEGER,
-    allowNull: false
-  },
-  author_id: {
-    type: DataTypes.INTEGER,
-    allowNull: false
   }
 })
 
