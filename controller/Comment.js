@@ -14,9 +14,21 @@ class CommentController extends BaseController {
       attributes: [
         'id',
         'content',
-        'created_time',
+        ['created_time', 'createdTime'],
         [Sequelize.col('u.username'), 'user'],
-        [Sequelize.col('a.title'), 'article']
+        [Sequelize.col('a.title'), 'article'],
+        [
+          Sequelize.literal(
+            `(SELECT COUNT(*) FROM \`like\` WHERE \`like\`.comment_id = comment.id AND \`like\`.is_delete = 0)`
+          ),
+          'likes'
+        ],
+        [
+          Sequelize.literal(
+            `(SELECT COUNT(*) FROM \`like\` WHERE \`like\`.user_id = ${ctx.state.user.id} AND \`like\`.comment_id = comment.id AND \`like\`.is_delete = 0)`
+          ),
+          'isLike'
+        ]
       ],
       where: {
         article_id: ctx.request.body.id,

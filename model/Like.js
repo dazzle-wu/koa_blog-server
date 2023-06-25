@@ -14,10 +14,12 @@ const Like = sequelize.define('like', {
   },
   article_id: {
     type: DataTypes.INTEGER,
-    allowNull: false
+  },
+  comment_id: {
+    type: DataTypes.INTEGER,
   },
   is_delete: {
-    type: DataTypes.TINYINT,
+    type: DataTypes.TINYINT(1),
     allowNull: false,
     defaultValue: 0
   }

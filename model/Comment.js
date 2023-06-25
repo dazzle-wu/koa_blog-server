@@ -21,7 +21,7 @@ const Comment = sequelize.define('comment', {
     allowNull: false
   },
   is_delete: {
-    type: DataTypes.TINYINT,
+    type: DataTypes.TINYINT(1),
     allowNull: false,
     defaultValue: 0
   }

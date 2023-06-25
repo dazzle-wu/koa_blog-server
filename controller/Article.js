@@ -6,6 +6,7 @@ const CategoryModel = require('../model/Category')
 const UserModel = require('../model/User')
 const CommentModel = require('../model/Comment')
 const LikeModel = require('../model/Like')
+const { Op } = require('sequelize')
 
 ArticleModel.belongsTo(CategoryModel, { as: 'c', foreignKey: 'category_id', targetKey: 'id' })
 ArticleModel.belongsTo(UserModel, { as: 'u', foreignKey: 'user_id', targetKey: 'id' })
@@ -19,26 +20,38 @@ class ArticleController extends BaseController {
       attributes: [
         'id',
         'title',
-        'cover_img',
-        'is_publish',
-        'created_time',
-        'updated_time',
+        ['cover_img', 'coverImg'],
+        'readings',
+        ['is_publish', 'isPublish'],
+        ['created_time', 'createdTime'],
+        ['updated_time', 'updatedTime'],
         [Sequelize.col('c.name'), 'category'],
         [Sequelize.col('u.username'), 'user'],
         [
           Sequelize.literal(
-            '(SELECT COUNT(*) FROM comment WHERE comment.article_id = article.id AND comment.is_delete = 0)'
+            `(SELECT COUNT(*) FROM comment WHERE comment.article_id = article.id AND comment.is_delete = 0)`
           ),
           'comments'
         ],
         [
           Sequelize.literal(
-            '(SELECT COUNT(*) FROM `like` WHERE `like`.article_id = article.id AND `like`.is_delete = 0)'
+            `(SELECT COUNT(*) FROM \`like\` WHERE \`like\`.article_id = article.id AND \`like\`.is_delete = 0)`
           ),
           'likes'
+        ],
+        [
+          Sequelize.literal(
+            `(SELECT COUNT(*) FROM \`like\` WHERE \`like\`.user_id = ${ctx.state.user.id} AND \`like\`.article_id = article.id AND \`like\`.is_delete = 0)`
+          ),
+          'isLike'
         ]
       ],
-      where: { is_delete: 0 },
+      where: {
+        is_delete: 0,
+        is_publish: 1,
+        title: { [Op.like]: `%${ctx.request.body.keyword}%` },
+        user_id: { [Op.like]: `%${ctx.request.body.userId}%` }
+      },
       order: [['created_time', 'DESC']],
       include: [
         { model: CategoryModel, as: 'c', attributes: [] },
@@ -51,28 +64,36 @@ class ArticleController extends BaseController {
 
   // 文章详情
   static async getArticleDetail(ctx) {
+    await ArticleModel.increment({ readings: 1 }, { where: { id: ctx.params.id } })
     const res = await ArticleModel.findOne({
       attributes: [
         'id',
         'title',
         'content',
-        'cover_img',
-        'is_publish',
-        'created_time',
-        'updated_time',
+        ['cover_img', 'coverImg'],
+        'readings',
+        ['is_publish', 'isPublish'],
+        ['created_time', 'createdTime'],
+        ['updated_time', 'updatedTime'],
         [Sequelize.col('c.name'), 'category'],
         [Sequelize.col('u.username'), 'user'],
         [
           Sequelize.literal(
-            '(SELECT COUNT(*) FROM comment WHERE comment.article_id = article.id AND comment.is_delete = 0)'
+            `(SELECT COUNT(*) FROM comment WHERE comment.article_id = article.id AND comment.is_delete = 0)`
           ),
           'comments'
         ],
         [
           Sequelize.literal(
-            '(SELECT COUNT(*) FROM `like` WHERE `like`.article_id = article.id AND `like`.is_delete = 0)'
+            `(SELECT COUNT(*) FROM \`like\` WHERE \`like\`.article_id = article.id AND \`like\`.is_delete = 0)`
           ),
           'likes'
+        ],
+        [
+          Sequelize.literal(
+            `(SELECT COUNT(*) FROM \`like\` WHERE \`like\`.user_id = ${ctx.state.user.id} AND \`like\`.article_id = article.id AND \`like\`.is_delete = 0)`
+          ),
+          'isLike'
         ]
       ],
       where: { id: ctx.params.id },

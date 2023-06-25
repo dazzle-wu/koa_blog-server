@@ -23,12 +23,12 @@ const User = sequelize.define('user', {
     allowNull: false,
   },
   is_admin: {
-    type: DataTypes.TINYINT,
+    type: DataTypes.TINYINT(1),
     allowNull: false,
     defaultValue: 0
   },
   is_delete: {
-    type: DataTypes.TINYINT,
+    type: DataTypes.TINYINT(1),
     allowNull: false,
     defaultValue: 0
   }

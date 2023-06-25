@@ -17,7 +17,7 @@ const Diary = sequelize.define('diary', {
     allowNull: false
   },
   is_delete: {
-    type: DataTypes.TINYINT,
+    type: DataTypes.TINYINT(1),
     allowNull: false,
     defaultValue: 0
   }
