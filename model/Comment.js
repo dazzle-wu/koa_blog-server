@@ -20,6 +20,11 @@ const Comment = sequelize.define('comment', {
     type: DataTypes.INTEGER,
     allowNull: false
   },
+  is_top: {
+    type: DataTypes.TINYINT(1),
+    allowNull: false,
+    defaultValue: 0
+  },
   is_delete: {
     type: DataTypes.TINYINT(1),
     allowNull: false,

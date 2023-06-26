@@ -20,8 +20,10 @@
     "koa-jwt": "^4.0.4",
     "koa-logger": "^3.2.1",
     "koa-onerror": "^4.2.0",
+    "koa-session": "^6.4.0",
     "koa-static": "^5.0.0",
     "mysql2": "^3.3.5",
-    "sequelize": "^6.32.0"
+    "sequelize": "^6.32.0",
+    "svg-captcha": "^1.4.0"
   }
 }

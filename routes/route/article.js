@@ -30,4 +30,6 @@ router.post('/like', LikeController.likeArticle)
 
 router.post('/cancelLike', LikeController.cancelLikeArticle)
 
+router.post('/recommend', ArticleController.recommendArticle)
+
 module.exports = router

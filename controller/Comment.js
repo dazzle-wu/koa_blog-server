@@ -64,6 +64,33 @@ class CommentController extends BaseController {
     )
     ctx.body = super.renderJsonSuccess()
   }
+
+  // 置顶评论
+  static async topComment(ctx) {
+    if (ctx.request.body.isTop) {
+      await CommentModel.update(
+        { is_top: 0 },
+        {
+          where: { article_id: ctx.request.body.articleId }
+        }
+      )
+      const res = await CommentModel.update(
+        { is_top: 1 },
+        {
+          where: { id: ctx.request.body.id }
+        }
+      )
+      ctx.body = super.renderJsonSuccess()
+    } else {
+      const res = await CommentModel.update(
+        { is_top: 0 },
+        {
+          where: { id: ctx.request.body.id }
+        }
+      )
+      ctx.body = super.renderJsonSuccess()
+    }
+  }
 }
 
 module.exports = CommentController

@@ -141,6 +141,17 @@ class ArticleController extends BaseController {
     )
     ctx.body = super.renderJsonSuccess()
   }
+
+  // 推荐文章
+  static async recommendArticle(ctx) {
+    const res = await ArticleModel.update(
+      { is_recommend: ctx.request.body.isRecommend },
+      {
+        where: { id: ctx.request.body.id }
+      }
+    )
+    ctx.body = super.renderJsonSuccess()
+  }
 }
 
 module.exports = ArticleController

@@ -7,6 +7,7 @@ const static = require('koa-static')
 const logger = require('koa-logger')
 const cors = require('koa-cors')
 const jwt = require('koa-jwt')
+const session = require('koa-session')
 const router = require('./routes/index')
 const config = require('./config.js')
 
@@ -26,6 +27,10 @@ onerror(app)
 
 app.use(handler)
 
+app.keys = ['secret']
+
+app.use(session(config.sessionConfig, app))
+
 app.use(bodyparser())
 
 app.use(logger())
@@ -34,7 +39,7 @@ app.use(static(__dirname + '/public'))
 
 app.use(cors())
 
-app.use(jwt({ secret: config.jwtSecretKey }).unless({ path: ['/api/user/register', '/api/user/login'] }))
+app.use(jwt({ secret: config.jwtSecretKey }).unless({ path: ['/api/user/register', '/api/user/login', '/api/user/getCaptcha'] }))
 
 app.use(router.routes(), router.allowedMethods())
 

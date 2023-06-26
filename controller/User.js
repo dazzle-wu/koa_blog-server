@@ -1,5 +1,7 @@
+const path = require('path')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
+const svgCaptcha = require('svg-captcha')
 const BaseController = require('./BaseController')
 const UserModel = require('../model/User')
 const config = require('../config.js')
@@ -111,6 +113,33 @@ class UserController extends BaseController {
         ctx.body = super.renderJsonError('昵称已被使用')
       }
     }
+  }
+
+  // 修改头像
+  static async changeAvatar(ctx) {
+    const res = UserModel.update(
+      { avatar: path.join('/public', ctx.file.filename) },
+      {
+        where: { id: ctx.state.user.id }
+      }
+    )
+    ctx.body = super.renderJsonSuccess()
+  }
+
+  // 获取验证码
+  static async getCaptcha(ctx) {
+    const captcha = svgCaptcha.create({
+      inverse: false,
+      fontSize: 48,
+      noise: 2,
+      width: 100,
+      height: 40,
+      size: 4,
+      ignoreChars: '0o1i'
+    })
+    ctx.session.captcha = captcha.text.toLowerCase()
+    ctx.set('Content-Type', 'image/svg+xml')
+    ctx.body = captcha.data
   }
 }
 

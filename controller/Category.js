@@ -7,12 +7,15 @@ class CategoryController extends BaseController {
   static async getCategoryList(ctx) {
     const res = await CategoryModel.findAll({
       attributes: ['id', 'name'],
-      where: { is_delete: 0 }
+      where: {
+        is_delete: 0,
+        name: { [Op.like]: `%${ctx.request.body.keyword}%` }
+      }
     })
     ctx.body = super.renderJsonSuccess(res)
   }
 
-  // 增加分类
+  // 新增分类
   static async addCategory(ctx) {
     const cate = await CategoryModel.findOne({
       where: { name: ctx.request.body.name }
