@@ -2,6 +2,7 @@ const Sequelize = require('sequelize')
 const BaseController = require('./BaseController')
 const DiaryModel = require('../model/Diary')
 const UserModel = require('../model/User')
+const { Op } = require('sequelize')
 
 DiaryModel.belongsTo(UserModel, { as: 'u', foreignKey: 'user_id', targetKey: 'id' })
 
@@ -11,7 +12,16 @@ class DiaryController extends BaseController {
     const res = await DiaryModel.findAndCountAll({
       attributes: ['id', 'content', 'created_time', [Sequelize.col('u.username'), 'user']],
       where: {
-        user_id: ctx.state.user.id,
+        [Op.or]: [
+          {
+            user_id: { [Op.ne]: ctx.state.user.id },
+            is_public: 1
+          },
+          {
+            user_id: ctx.state.user.id,
+            is_public: [0, 1]
+          }
+        ],
         is_delete: 0
       },
       order: [['created_time', 'DESC']],
@@ -32,8 +42,19 @@ class DiaryController extends BaseController {
 
   // 删除日记
   static async deleteDiary(ctx) {
-    const res = await ArticleModel.update(
+    const res = await DiaryModel.update(
       { is_delete: 1 },
+      {
+        where: { id: ctx.request.body.id }
+      }
+    )
+    ctx.body = super.renderJsonSuccess()
+  }
+
+  // 修改日记状态
+  static async updateDiary(ctx) {
+    const res = await DiaryModel.update(
+      { is_public: ctx.request.body.isPublic },
       {
         where: { id: ctx.request.body.id }
       }

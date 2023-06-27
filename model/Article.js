@@ -38,6 +38,11 @@ const Article = sequelize.define('article', {
     allowNull: false,
     defaultValue: 0
   },
+  is_recommend: {
+    type: DataTypes.TINYINT(1),
+    allowNull: false,
+    defaultValue: 0
+  },
   is_delete: {
     type: DataTypes.TINYINT(1),
     allowNull: false,

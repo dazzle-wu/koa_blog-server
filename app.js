@@ -39,7 +39,11 @@ app.use(static(__dirname + '/public'))
 
 app.use(cors())
 
-app.use(jwt({ secret: config.jwtSecretKey }).unless({ path: ['/api/user/register', '/api/user/login', '/api/user/getCaptcha'] }))
+app.use(
+  jwt({ secret: config.jwtSecretKey }).unless({
+    path: ['/api/user/register', '/api/user/login', '/api/user/getCaptcha', '/api/user/sendEmailCode']
+  })
+)
 
 app.use(router.routes(), router.allowedMethods())
 
@@ -48,5 +52,5 @@ app.on('error', (err, ctx) => {
 })
 
 app.listen(3000, () => {
-  console.log('http://localhost:3000')
+  console.log('server running at: http://localhost:3000')
 })

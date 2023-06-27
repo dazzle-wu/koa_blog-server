@@ -13,5 +13,17 @@ module.exports = {
     signed: true,
     rolling: true,
     renew: false
-  }
+  },
+  // 邮箱配置
+  emailConfig: {
+    host: 'smtp.qq.com',
+    port: 465,
+    secure: true,
+    auth: {
+      user: '1503030731@qq.com',
+      pass: 'sosocsfepolxhdha'
+    }
+  },
+  // 发送验证码邮箱
+  userEmail: '1503030731@qq.com'
 }

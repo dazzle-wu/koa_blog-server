@@ -16,6 +16,11 @@ const Diary = sequelize.define('diary', {
     type: DataTypes.INTEGER,
     allowNull: false
   },
+  is_public: {
+    type: DataTypes.TINYINT(1),
+    allowNull: false,
+    defaultValue: 0
+  },
   is_delete: {
     type: DataTypes.TINYINT(1),
     allowNull: false,

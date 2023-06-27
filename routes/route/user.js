@@ -33,4 +33,6 @@ router.post('/changeAvatar', upload.single('avatar'), UserController.changeAvata
 
 router.get('/getCaptcha', UserController.getCaptcha)
 
+router.post('/sendEmailCode', UserController.sendEmailCode)
+
 module.exports = router

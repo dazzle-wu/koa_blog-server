@@ -9,7 +9,7 @@ class CategoryController extends BaseController {
       attributes: ['id', 'name'],
       where: {
         is_delete: 0,
-        name: { [Op.like]: `%${ctx.request.body.keyword}%` }
+        name: { [Op.like]: `%${ctx.request.body.keyword || ''}%` }
       }
     })
     ctx.body = super.renderJsonSuccess(res)

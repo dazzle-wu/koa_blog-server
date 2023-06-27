@@ -48,9 +48,10 @@ class ArticleController extends BaseController {
       ],
       where: {
         is_delete: 0,
-        is_publish: 1,
-        title: { [Op.like]: `%${ctx.request.body.keyword}%` },
-        user_id: { [Op.like]: `%${ctx.request.body.userId}%` }
+        is_publish: ctx.request.body.state === 'all' ? [0, 1] : ctx.request.body.state === 'draft' ? 0 : 1,
+        title: { [Op.like]: `%${ctx.request.body.keyword || ''}%` },
+        user_id: ctx.request.body.userId ? ctx.request.body.userId : { [Op.not]: null },
+        is_recommend: ctx.request.body.isRecommend ? 1 : [0, 1]
       },
       order: [['created_time', 'DESC']],
       include: [

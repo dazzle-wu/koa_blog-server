@@ -23,6 +23,7 @@
     "koa-session": "^6.4.0",
     "koa-static": "^5.0.0",
     "mysql2": "^3.3.5",
+    "nodemailer": "^6.9.3",
     "sequelize": "^6.32.0",
     "svg-captcha": "^1.4.0"
   }

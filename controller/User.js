@@ -2,6 +2,7 @@ const path = require('path')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const svgCaptcha = require('svg-captcha')
+const nodemailer = require('nodemailer')
 const BaseController = require('./BaseController')
 const UserModel = require('../model/User')
 const config = require('../config.js')
@@ -10,16 +11,13 @@ const { Op } = require('sequelize')
 class UserController extends BaseController {
   // 用户列表
   static async getUserList(ctx) {
-    const res = await UserModel.findAll({
-      attributes: ['id', 'email', 'username', 'is_admin', 'is_delete']
-    })
+    const res = await UserModel.findAll()
     ctx.body = super.renderJsonSuccess(res)
   }
 
   // 用户详情
   static async getUserDetail(ctx) {
     const res = await UserModel.findOne({
-      attributes: ['id', 'email', 'username'],
       where: { id: ctx.request.body.id }
     })
     ctx.body = super.renderJsonSuccess(res)
@@ -27,69 +25,65 @@ class UserController extends BaseController {
 
   // 用户注册
   static async register(ctx) {
-    const { email, password } = ctx.request.body
-    const user = await UserModel.findOne({
-      where: { email: email }
-    })
-    if (!user) {
-      const res = await UserModel.create({
-        email: email,
-        password: bcrypt.hashSync(password, 10)
+    const { email, emailCode, password } = ctx.request.body
+    if (emailCode === ctx.session.emailCode) {
+      const user = await UserModel.findOne({
+        where: { email: email }
       })
-      ctx.body = super.renderJsonSuccess(res)
+      if (!user) {
+        const res = await UserModel.create({
+          email: email,
+          password: bcrypt.hashSync(password, 10)
+        })
+        ctx.body = super.renderJsonSuccess(res)
+      } else {
+        ctx.body = super.renderJsonError('邮箱已被使用')
+      }
     } else {
-      ctx.body = super.renderJsonError('邮箱已被使用')
+      ctx.body = super.renderJsonError('邮箱验证码错误')
     }
   }
 
   // 用户登录
   static async login(ctx) {
-    const { username, password } = ctx.request.body
-    const user = await UserModel.findOne({
-      attributes: ['id', 'email', 'username', 'password'],
-      where: {
-        [Op.and]: [{ [Op.or]: [{ email: username }, { username: username }] }, { is_delete: 0 }]
-      }
-    })
-    if (user) {
-      const compareResult = bcrypt.compareSync(password, user.password)
-      if (compareResult) {
-        const tokenStr = jwt.sign({ id: user.uid }, config.jwtSecretKey, { expiresIn: config.expiresIn })
-        const data = {
-          ...user.dataValues,
-          token: 'Bearer ' + tokenStr
+    const { username, password, captcha } = ctx.request.body
+    if (captcha.toLowerCase() === ctx.session.captcha) {
+      const user = await UserModel.findOne({
+        attributes: ['id', 'email', 'username', 'password'],
+        where: {
+          [Op.or]: [{ email: username }, { username: username }],
+          is_delete: 0
         }
-        ctx.body = super.renderJsonSuccess(data)
+      })
+      if (user) {
+        const compareResult = bcrypt.compareSync(password, user.password)
+        if (compareResult) {
+          const tokenStr = jwt.sign({ id: user.uid }, config.jwtSecretKey, { expiresIn: config.expiresIn })
+          const data = {
+            ...user.dataValues,
+            token: 'Bearer ' + tokenStr
+          }
+          ctx.body = super.renderJsonSuccess(data)
+        } else {
+          ctx.body = super.renderJsonError('密码错误')
+        }
       } else {
-        ctx.body = super.renderJsonError('密码错误')
+        ctx.body = super.renderJsonError('用户不存在')
       }
     } else {
-      ctx.body = super.renderJsonError('用户不存在')
+      ctx.body = super.renderJsonError('验证码错误')
     }
   }
 
-  // 修改密码
-  static async changePassword(ctx) {
-    const { oldPassword, newPassword } = ctx.request.body
-    const user = await UserModel.findOne({
-      where: { id: ctx.state.user.id }
-    })
-    const compareResult = bcrypt.compareSync(oldPassword, user.password)
-    if (compareResult) {
-      if (newPassword !== oldPassword) {
-        const res = await UserModel.update(
-          { password: bcrypt.hashSync(newPassword, 10) },
-          {
-            where: { id: ctx.state.user.id }
-          }
-        )
-        ctx.body = super.renderJsonSuccess()
-      } else {
-        ctx.body = super.renderJsonError('新密码不能与原密码相同')
+  // 修改头像
+  static async changeAvatar(ctx) {
+    const res = UserModel.update(
+      { avatar: path.join('/public', ctx.file.filename) },
+      {
+        where: { id: ctx.state.user.id }
       }
-    } else {
-      ctx.body = super.renderJsonError('原密码错误')
-    }
+    )
+    ctx.body = super.renderJsonSuccess()
   }
 
   // 修改昵称
@@ -115,15 +109,44 @@ class UserController extends BaseController {
     }
   }
 
-  // 修改头像
-  static async changeAvatar(ctx) {
-    const res = UserModel.update(
-      { avatar: path.join('/public', ctx.file.filename) },
-      {
-        where: { id: ctx.state.user.id }
+  // 修改密码
+  static async changePassword(ctx) {
+    const { oldPassword, newPassword } = ctx.request.body
+    const user = await UserModel.findOne({
+      where: { id: ctx.state.user.id }
+    })
+    const compareResult = bcrypt.compareSync(oldPassword, user.password)
+    if (compareResult) {
+      if (newPassword !== oldPassword) {
+        const res = await UserModel.update(
+          { password: bcrypt.hashSync(newPassword, 10) },
+          {
+            where: { id: ctx.state.user.id }
+          }
+        )
+        ctx.body = super.renderJsonSuccess('密码修改成功')
+      } else {
+        ctx.body = super.renderJsonError('新密码不能与原密码相同')
       }
-    )
-    ctx.body = super.renderJsonSuccess()
+    } else {
+      ctx.body = super.renderJsonError('原密码错误')
+    }
+  }
+
+  // 找回密码
+  static async recoverPassword(ctx) {
+    const { email, emailCode, password } = ctx.request.body
+    if (emailCode === ctx.session.emailCode) {
+      const res = await UserModel.update(
+        { password: bcrypt.hashSync(password, 10) },
+        {
+          where: { email: email }
+        }
+      )
+      ctx.body = super.renderJsonSuccess('密码重置成功')
+    } else {
+      ctx.body = super.renderJsonError('邮箱验证码错误')
+    }
   }
 
   // 获取验证码
@@ -140,6 +163,26 @@ class UserController extends BaseController {
     ctx.session.captcha = captcha.text.toLowerCase()
     ctx.set('Content-Type', 'image/svg+xml')
     ctx.body = captcha.data
+  }
+
+  // 发送邮箱验证码
+  static async sendEmailCode(ctx) {
+    const { email, type } = ctx.request.body
+    const code = Math.random().toString().slice(2, 6)
+    ctx.session.emailCode = code
+    const mailOptions = {
+      from: config.userEmail,
+      to: email,
+      subject: '验证码',
+      html: `<div>您正在${type === 'register' ? '注册' : '找回密码'}，验证码为：<span>${code}</span></div>`
+    }
+    const transporter = nodemailer.createTransport(config.emailConfig)
+    try {
+      await transporter.sendMail(mailOptions)
+      ctx.body = super.renderJsonSuccess('邮箱验证码发送成功')
+    } catch (e) {
+      ctx.body = super.renderJsonError('邮箱验证码发送失败')
+    }
   }
 }
 
