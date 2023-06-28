@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize')
 const sequelize = require('../database/db')
 
-const Like = sequelize.define('like', {
+const History = sequelize.define('history', {
   id: {
     type: DataTypes.INTEGER,
     allowNull: false,
@@ -13,10 +13,8 @@ const Like = sequelize.define('like', {
     allowNull: false
   },
   article_id: {
-    type: DataTypes.INTEGER
-  },
-  comment_id: {
-    type: DataTypes.INTEGER
+    type: DataTypes.INTEGER,
+    allowNull: false
   },
   is_delete: {
     type: DataTypes.TINYINT(1),
@@ -25,4 +23,4 @@ const Like = sequelize.define('like', {
   }
 })
 
-module.exports = Like
+module.exports = History

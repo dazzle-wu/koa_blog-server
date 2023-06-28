@@ -1,4 +1,4 @@
-const Sequelize = require('sequelize')
+const { Sequelize } = require('sequelize')
 const BaseController = require('./BaseController')
 const CommentModel = require('../model/Comment')
 const UserModel = require('../model/User')

@@ -1,8 +1,7 @@
-const Sequelize = require('sequelize')
+const { Sequelize, Op } = require('sequelize')
 const BaseController = require('./BaseController')
 const DiaryModel = require('../model/Diary')
 const UserModel = require('../model/User')
-const { Op } = require('sequelize')
 
 DiaryModel.belongsTo(UserModel, { as: 'u', foreignKey: 'user_id', targetKey: 'id' })
 

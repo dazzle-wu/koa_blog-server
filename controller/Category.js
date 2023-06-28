@@ -1,6 +1,6 @@
+const { Op } = require('sequelize')
 const BaseController = require('./BaseController')
 const CategoryModel = require('../model/Category')
-const { Op } = require('sequelize')
 
 class CategoryController extends BaseController {
   // 分类列表

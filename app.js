@@ -10,6 +10,7 @@ const jwt = require('koa-jwt')
 const session = require('koa-session')
 const router = require('./routes/index')
 const config = require('./config.js')
+const jwtUnless = require('./utils/jwtUnless')
 
 const handler = async (ctx, next) => {
   try {
@@ -41,7 +42,15 @@ app.use(cors())
 
 app.use(
   jwt({ secret: config.jwtSecretKey }).unless({
-    path: ['/api/user/register', '/api/user/login', '/api/user/getCaptcha', '/api/user/sendEmailCode']
+    custom: (ctx) => {
+      if (jwtUnless.checkIsNonTokenApi(ctx)) {
+        // 是不需要验证token的接口
+        return true
+      } else {
+        // 是需要验证token的接口
+        return false
+      }
+    }
   })
 )
 

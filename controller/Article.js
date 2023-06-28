@@ -1,12 +1,12 @@
-const Sequelize = require('sequelize')
+const { Sequelize, Op } = require('sequelize')
 const path = require('path')
 const BaseController = require('./BaseController')
+const HistoryController = require('./History')
 const ArticleModel = require('../model/Article')
 const CategoryModel = require('../model/Category')
 const UserModel = require('../model/User')
 const CommentModel = require('../model/Comment')
 const LikeModel = require('../model/Like')
-const { Op } = require('sequelize')
 
 ArticleModel.belongsTo(CategoryModel, { as: 'c', foreignKey: 'category_id', targetKey: 'id' })
 ArticleModel.belongsTo(UserModel, { as: 'u', foreignKey: 'user_id', targetKey: 'id' })
@@ -16,6 +16,7 @@ ArticleModel.hasMany(LikeModel)
 class ArticleController extends BaseController {
   // 文章列表
   static async getArticleList(ctx) {
+    const { userId = 0, state, keyword = '', isRecommend } = ctx.request.body
     const res = await ArticleModel.findAndCountAll({
       attributes: [
         'id',
@@ -41,17 +42,17 @@ class ArticleController extends BaseController {
         ],
         [
           Sequelize.literal(
-            `(SELECT COUNT(*) FROM \`like\` WHERE \`like\`.user_id = ${ctx.state.user.id} AND \`like\`.article_id = article.id AND \`like\`.is_delete = 0)`
+            `(SELECT COUNT(*) FROM \`like\` WHERE \`like\`.user_id = ${userId} AND \`like\`.article_id = article.id AND \`like\`.is_delete = 0)`
           ),
           'isLike'
         ]
       ],
       where: {
         is_delete: 0,
-        is_publish: ctx.request.body.state === 'all' ? [0, 1] : ctx.request.body.state === 'draft' ? 0 : 1,
-        title: { [Op.like]: `%${ctx.request.body.keyword || ''}%` },
-        user_id: ctx.request.body.userId ? ctx.request.body.userId : { [Op.not]: null },
-        is_recommend: ctx.request.body.isRecommend ? 1 : [0, 1]
+        is_publish: state === 'all' ? [0, 1] : state === 'draft' ? 0 : 1,
+        title: { [Op.like]: `%${keyword}%` },
+        user_id: userId ? userId : { [Op.not]: null },
+        is_recommend: isRecommend ? 1 : [0, 1]
       },
       order: [['created_time', 'DESC']],
       include: [
@@ -65,7 +66,9 @@ class ArticleController extends BaseController {
 
   // 文章详情
   static async getArticleDetail(ctx) {
+    const { userId = 0 } = ctx.request.body
     await ArticleModel.increment({ readings: 1 }, { where: { id: ctx.params.id } })
+    HistoryController.addHistory(ctx)
     const res = await ArticleModel.findOne({
       attributes: [
         'id',
@@ -92,7 +95,7 @@ class ArticleController extends BaseController {
         ],
         [
           Sequelize.literal(
-            `(SELECT COUNT(*) FROM \`like\` WHERE \`like\`.user_id = ${ctx.state.user.id} AND \`like\`.article_id = article.id AND \`like\`.is_delete = 0)`
+            `(SELECT COUNT(*) FROM \`like\` WHERE \`like\`.user_id = ${userId} AND \`like\`.article_id = article.id AND \`like\`.is_delete = 0)`
           ),
           'isLike'
         ]

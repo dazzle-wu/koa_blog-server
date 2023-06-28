@@ -3,10 +3,10 @@ const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const svgCaptcha = require('svg-captcha')
 const nodemailer = require('nodemailer')
+const { Op } = require('sequelize')
 const BaseController = require('./BaseController')
 const UserModel = require('../model/User')
 const config = require('../config.js')
-const { Op } = require('sequelize')
 
 class UserController extends BaseController {
   // 用户列表

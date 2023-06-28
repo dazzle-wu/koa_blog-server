@@ -18,9 +18,9 @@ const upload = multer({ storage })
 // 模块路由前缀
 router.prefix('/article')
 
-router.get('/list', ArticleController.getArticleList)
+router.post('/list', ArticleController.getArticleList)
 
-router.get('/detail/:id', ArticleController.getArticleDetail)
+router.post('/detail/:id', ArticleController.getArticleDetail)
 
 router.post('/add', upload.single('cover_img'), ArticleController.addArticle)
 
