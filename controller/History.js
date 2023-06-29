@@ -8,7 +8,7 @@ HistoryModel.belongsTo(UserModel, { as: 'u', foreignKey: 'user_id', targetKey: '
 HistoryModel.belongsTo(ArticleModel, { as: 'a', foreignKey: 'article_id', targetKey: 'id' })
 
 class HistoryController extends BaseController {
-  // 查询历史
+  // 查看历史
   static async getHistory(ctx) {
     const { keyword = '' } = ctx.request.body
     const res = await HistoryModel.findAndCountAll({

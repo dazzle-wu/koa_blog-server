@@ -7,11 +7,13 @@ const CategoryModel = require('../model/Category')
 const UserModel = require('../model/User')
 const CommentModel = require('../model/Comment')
 const LikeModel = require('../model/Like')
+const CollectModel = require('../model/Collect')
 
 ArticleModel.belongsTo(CategoryModel, { as: 'c', foreignKey: 'category_id', targetKey: 'id' })
 ArticleModel.belongsTo(UserModel, { as: 'u', foreignKey: 'user_id', targetKey: 'id' })
 ArticleModel.hasMany(CommentModel)
 ArticleModel.hasMany(LikeModel)
+ArticleModel.hasMany(CollectModel)
 
 class ArticleController extends BaseController {
   // 文章列表
@@ -45,6 +47,18 @@ class ArticleController extends BaseController {
             `(SELECT COUNT(*) FROM \`like\` WHERE \`like\`.user_id = ${userId} AND \`like\`.article_id = article.id AND \`like\`.is_delete = 0)`
           ),
           'isLike'
+        ],
+        [
+          Sequelize.literal(
+            `(SELECT COUNT(*) FROM collect WHERE collect.article_id = article.id AND collect.is_delete = 0)`
+          ),
+          'collects'
+        ],
+        [
+          Sequelize.literal(
+            `(SELECT COUNT(*) FROM collect WHERE collect.user_id = ${userId} AND collect.article_id = article.id AND collect.is_delete = 0)`
+          ),
+          'isCollect'
         ]
       ],
       where: {
