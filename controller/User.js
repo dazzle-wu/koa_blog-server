@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 const svgCaptcha = require('svg-captcha')
 const nodemailer = require('nodemailer')
-const { Op } = require('sequelize')
+const { Sequelize, Op } = require('sequelize')
 const BaseController = require('./BaseController')
 const UserModel = require('../model/User')
 const config = require('../config.js')
@@ -17,8 +17,29 @@ class UserController extends BaseController {
 
   // 用户详情
   static async getUserDetail(ctx) {
+    const { id } = ctx.request.body
     const res = await UserModel.findOne({
-      where: { id: ctx.request.body.id }
+      attributes: [
+        'id',
+        'avatar',
+        'email',
+        'username',
+        [
+          Sequelize.literal(
+            `(SELECT COUNT(*) FROM \`like\` WHERE \`like\`.user_id = ${id} AND \`like\`.is_delete = 0)`
+          ),
+          'likes'
+        ],
+        [
+          Sequelize.literal(
+            `(SELECT COUNT(*) FROM collect WHERE collect.user_id = ${id} AND collect.is_delete = 0)`
+          ),
+          'collects'
+        ],
+        ['is_admin', 'isAdmin'],
+        ['created_time', 'createdTime']
+      ],
+      where: { id: id }
     })
     ctx.body = super.renderJsonSuccess(res)
   }

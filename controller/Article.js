@@ -112,6 +112,18 @@ class ArticleController extends BaseController {
             `(SELECT COUNT(*) FROM \`like\` WHERE \`like\`.user_id = ${userId} AND \`like\`.article_id = article.id AND \`like\`.is_delete = 0)`
           ),
           'isLike'
+        ],
+        [
+          Sequelize.literal(
+            `(SELECT COUNT(*) FROM collect WHERE collect.article_id = article.id AND collect.is_delete = 0)`
+          ),
+          'collects'
+        ],
+        [
+          Sequelize.literal(
+            `(SELECT COUNT(*) FROM collect WHERE collect.user_id = ${userId} AND collect.article_id = article.id AND collect.is_delete = 0)`
+          ),
+          'isCollect'
         ]
       ],
       where: { id: ctx.params.id },
